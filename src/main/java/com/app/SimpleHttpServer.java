@@ -5,28 +5,54 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
 public class SimpleHttpServer {
 
     public static void main(String[] args) throws IOException {
         int port = 8080;
+        int lifetimeSeconds = 60;
 
-        // Create HTTP server on port 8080
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        server.createContext("/", new MyHandler(lifetimeSeconds));
+        server.setExecutor(Executors.newCachedThreadPool());
 
-        // Register a simple handler
-        server.createContext("/", new MyHandler());
-
-        // Start the server
-        server.setExecutor(null); // use default executor
         System.out.println("Server running at http://localhost:" + port);
+
         server.start();
+
+        // Stop server after 60 seconds
+        new Thread(() -> {
+            try {
+                Thread.sleep(lifetimeSeconds * 1000L);
+                System.out.println("Shutting down server after " + lifetimeSeconds + " seconds...");
+                server.stop(0);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     static class MyHandler implements HttpHandler {
+        private final int seconds;
+
+        public MyHandler(int seconds) {
+            this.seconds = seconds;
+        }
+
         @Override
         public void handle(HttpExchange exchange) throws IOException {
-            String response = "<html><body><h1>Hello from Java HTTP Server!</h1></body></html>";
+            String response = "<!DOCTYPE html><html><head><title>Temp Server</title>"
+                    + "<script>"
+                    + "let seconds = " + seconds + ";"
+                    + "setInterval(() => {"
+                    + "  if (seconds <= 0) return;"
+                    + "  document.getElementById('counter').textContent = --seconds;"
+                    + "}, 1000);"
+                    + "</script></head><body>"
+                    + "<h1>This Java server will stop in <span id='counter'>" + seconds + "</span> seconds.</h1>"
+                    + "</body></html>";
+
             exchange.sendResponseHeaders(200, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
