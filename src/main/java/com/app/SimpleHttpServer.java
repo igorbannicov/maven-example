@@ -11,7 +11,7 @@ public class SimpleHttpServer {
 
     public static void main(String[] args) throws IOException {
         int port = 8080;
-        int lifetimeSeconds = 60;
+        int lifetimeSeconds = 30;
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/", new MyHandler(lifetimeSeconds));
