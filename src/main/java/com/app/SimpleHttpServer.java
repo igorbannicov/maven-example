@@ -43,6 +43,7 @@ public class SimpleHttpServer {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String buildNumber = System.getProperty("buildNumber", "unknown");
+            String jobName = System.getProperty("jobName", "unknown");
             String response = "<!DOCTYPE html><html><head><title>Temp Server</title>"
                     + "<script>"
                     + "let seconds = " + seconds + ";"
@@ -52,7 +53,7 @@ public class SimpleHttpServer {
                     + "}, 1000);"
                     + "</script></head><body>"
                     + "<h1>This Java server will stop in <span id='counter'>" + seconds + "</span> seconds.</h1>"
-                    + "<h2>Build #" + buildNumber + "</h2>"
+                    + "<h2>Build job " + jobName + " #" + buildNumber + "</h2>"
                     + "</body></html>";
 
             exchange.sendResponseHeaders(200, response.getBytes().length);
